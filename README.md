@@ -19,7 +19,7 @@ Kick gives you secure, authenticated API endpoints to monitor and manage your La
 - **Log Access** - Read and search Laravel logs remotely with filtering
 - **Queue Management** - Monitor job counts, view failed jobs, retry with one call
 - **Artisan Commands** - Execute whitelisted artisan commands securely
-- **MCP Integration** - Built-in Model Context Protocol support for AI agents (coming soon)
+- **MCP Integration** - Built-in Model Context Protocol support for AI agents like Claude
 
 ## Quick Start
 
@@ -200,6 +200,78 @@ Kick is designed with security as a priority:
 - Use separate tokens for different purposes/consumers
 - Only whitelist artisan commands you actually need
 - Consider IP restrictions at the infrastructure level
+
+## MCP Integration
+
+Kick includes built-in support for the [Model Context Protocol](https://modelcontextprotocol.io), enabling AI assistants like Claude to interact with your Laravel application.
+
+### Setup
+
+1. Install Laravel MCP (if not already):
+
+```bash
+composer require laravel/mcp
+php artisan vendor:publish --tag=ai-routes
+```
+
+2. The Kick MCP server auto-registers at `/mcp/kick` when both packages are installed.
+
+### Available MCP Tools
+
+| Tool | Description |
+|------|-------------|
+| `kick_health` | Check application health (database, cache, storage, redis) |
+| `kick_stats` | Get system/container statistics (CPU, memory, disk, uptime) |
+| `kick_logs_list` | List available log files |
+| `kick_logs_read` | Read log entries with filtering by level and search |
+| `kick_queue_status` | Get queue overview and optionally list failed jobs |
+| `kick_queue_retry` | Retry a specific failed job or all failed jobs |
+| `kick_artisan_list` | List available whitelisted artisan commands |
+| `kick_artisan_run` | Execute a whitelisted artisan command |
+
+### Claude Desktop Configuration
+
+Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "laravel-kick": {
+      "url": "https://your-app.com/mcp/kick",
+      "headers": {
+        "Authorization": "Bearer your-kick-token"
+      }
+    }
+  }
+}
+```
+
+The MCP server uses the same token-based authentication as the HTTP API.
+
+### Example Conversation
+
+> **You:** Check the health of my Laravel app
+>
+> **Claude:** *uses kick_health tool*
+>
+> Your application is HEALTHY. All services are responding normally:
+> - Database: healthy (1.23ms)
+> - Cache: healthy (0.45ms)
+> - Storage: healthy (2.10ms)
+
+> **You:** Are there any errors in the logs?
+>
+> **Claude:** *uses kick_logs_read with level=ERROR*
+>
+> Found 3 error entries in laravel.log...
+
+### Disable MCP
+
+To disable MCP integration while keeping the HTTP API:
+
+```env
+KICK_MCP_ENABLED=false
+```
 
 ## Container Support
 

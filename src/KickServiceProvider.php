@@ -4,7 +4,11 @@ namespace StuMason\Kick;
 
 use Illuminate\Support\ServiceProvider;
 use StuMason\Kick\Http\Middleware\Authenticate;
+use StuMason\Kick\Services\ArtisanRunner;
+use StuMason\Kick\Services\HealthChecker;
 use StuMason\Kick\Services\LogReader;
+use StuMason\Kick\Services\QueueInspector;
+use StuMason\Kick\Services\StatsCollector;
 
 class KickServiceProvider extends ServiceProvider
 {
@@ -22,6 +26,11 @@ class KickServiceProvider extends ServiceProvider
             config('kick.logs.allowed_extensions', ['log']),
             config('kick.logs.max_lines', 500)
         ));
+
+        $this->app->singleton(HealthChecker::class);
+        $this->app->singleton(StatsCollector::class);
+        $this->app->singleton(QueueInspector::class);
+        $this->app->singleton(ArtisanRunner::class);
     }
 
     /**
@@ -31,6 +40,7 @@ class KickServiceProvider extends ServiceProvider
     {
         $this->registerPublishing();
         $this->registerRoutes();
+        $this->registerMcpRoutes();
     }
 
     /**
@@ -57,5 +67,26 @@ class KickServiceProvider extends ServiceProvider
         $this->app['router']->aliasMiddleware('kick.auth', Authenticate::class);
 
         $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
+    }
+
+    /**
+     * Register the MCP routes if laravel/mcp is installed.
+     */
+    protected function registerMcpRoutes(): void
+    {
+        if (! Kick::enabled()) {
+            return;
+        }
+
+        if (! config('kick.mcp.enabled', true)) {
+            return;
+        }
+
+        // Check if laravel/mcp is installed
+        if (! class_exists(\Laravel\Mcp\Facades\Mcp::class)) {
+            return;
+        }
+
+        $this->loadRoutesFrom(__DIR__.'/../routes/mcp.php');
     }
 }

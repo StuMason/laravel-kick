@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- MCP (Model Context Protocol) integration via `laravel/mcp`
+- KickServer MCP server with auto-registration at `/mcp/kick`
+- 8 MCP tools for AI assistant interaction:
+  - `kick_health` - Application health checks
+  - `kick_stats` - System/container statistics
+  - `kick_logs_list` - List available log files
+  - `kick_logs_read` - Read and filter log entries
+  - `kick_queue_status` - Queue overview with optional failed jobs
+  - `kick_queue_retry` - Retry failed jobs
+  - `kick_artisan_list` - List allowed commands
+  - `kick_artisan_run` - Execute whitelisted commands
+
 ## [0.2.0] - 2026-01-23
 
 ### Added
