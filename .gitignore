@@ -3,9 +3,12 @@
 /.phpunit.cache/
 /coverage/
 .phpunit.result.cache
+phpunit.xml
 composer.lock
 .idea/
 .vscode/
 .DS_Store
 *.swp
 *.swo
+.env
+.claude/
