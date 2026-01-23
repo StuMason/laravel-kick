@@ -136,7 +136,11 @@ class StatsCollector
             if (empty($line)) {
                 continue;
             }
-            [$key, $value] = explode(' ', $line, 2);
+            $parts = explode(' ', $line, 2);
+            if (count($parts) !== 2) {
+                continue;
+            }
+            [$key, $value] = $parts;
             $stats[$key] = (int) $value;
         }
 
