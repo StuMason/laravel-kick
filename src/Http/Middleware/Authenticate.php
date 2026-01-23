@@ -12,8 +12,6 @@ class Authenticate
 {
     /**
      * Handle an incoming request.
-     *
-     * @param  string|null  $scope
      */
     public function handle(Request $request, Closure $next, ?string $scope = null): Response
     {
