@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\Artisan;
 use StuMason\Kick\Exceptions\CommandNotAllowedException;
 use StuMason\Kick\Services\ArtisanRunner;
 
