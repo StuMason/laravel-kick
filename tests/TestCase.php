@@ -25,7 +25,12 @@ abstract class TestCase extends Orchestra
         $app['config']->set('kick.tokens', [
             'test-token-full' => ['*'],
             'test-token-logs' => ['logs:read'],
-            'test-token-limited' => ['stats:read'],
+            'test-token-limited' => [], // No scopes - for testing 403 responses
+        ]);
+        $app['config']->set('kick.allowed_commands', [
+            'about',
+            'route:list',
+            'cache:clear',
         ]);
     }
 }
