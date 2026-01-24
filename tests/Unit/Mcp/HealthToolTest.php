@@ -1,7 +1,6 @@
 <?php
 
 use Laravel\Mcp\Request;
-use Laravel\Mcp\Response;
 use StuMason\Kick\Mcp\Tools\HealthTool;
 use StuMason\Kick\Services\HealthChecker;
 

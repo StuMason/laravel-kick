@@ -4,7 +4,7 @@
 [![Code Style](https://github.com/StuMason/laravel-kick/actions/workflows/lint.yml/badge.svg)](https://github.com/StuMason/laravel-kick/actions/workflows/lint.yml)
 [![Latest Version](https://img.shields.io/packagist/v/stumason/laravel-kick.svg)](https://packagist.org/packages/stumason/laravel-kick)
 [![PHP Version](https://img.shields.io/packagist/php-v/stumason/laravel-kick.svg)](https://packagist.org/packages/stumason/laravel-kick)
-[![Laravel Version](https://img.shields.io/badge/Laravel-11.x%20%7C%2012.x-red.svg)](https://laravel.com)
+[![Laravel Version](https://img.shields.io/badge/Laravel-12.x-red.svg)](https://laravel.com)
 [![License](https://img.shields.io/packagist/l/stumason/laravel-kick.svg)](LICENSE)
 [![Downloads](https://img.shields.io/packagist/dt/stumason/laravel-kick.svg)](https://packagist.org/packages/stumason/laravel-kick)
 
@@ -285,8 +285,8 @@ Kick automatically detects containerized environments and reads metrics from:
 
 ## Requirements
 
-- PHP 8.2+
-- Laravel 11.x or 12.x
+- PHP 8.4+
+- Laravel 12.x
 
 ## Testing
 
