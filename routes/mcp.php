@@ -16,5 +16,6 @@ use StuMason\Kick\Mcp\KickServer;
 
 $prefix = config('kick.prefix', 'kick');
 
+// MCP requires wildcard scope (*) since it provides access to all tools
 Mcp::web("/mcp/{$prefix}", KickServer::class)
-    ->middleware(['kick.auth']);
+    ->middleware(['kick.auth:*']);

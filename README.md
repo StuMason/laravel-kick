@@ -8,7 +8,7 @@
 [![License](https://img.shields.io/packagist/l/stumason/laravel-kick.svg)](LICENSE)
 [![Downloads](https://img.shields.io/packagist/dt/stumason/laravel-kick.svg)](https://packagist.org/packages/stumason/laravel-kick)
 
-**Secure remote introspection and control for Laravel applications via HTTP API.**
+**Secure remote introspection and control for Laravel applications via HTTP API and MCP.**
 
 Kick gives you secure, authenticated API endpoints to monitor and manage your Laravel applications remotely. Perfect for AI agents, monitoring systems, and DevOps automation.
 
@@ -207,14 +207,9 @@ Kick includes built-in support for the [Model Context Protocol](https://modelcon
 
 ### Setup
 
-1. Install Laravel MCP (if not already):
+The MCP server auto-registers at `/mcp/kick` when Kick is installed.
 
-```bash
-composer require laravel/mcp
-php artisan vendor:publish --tag=ai-routes
-```
-
-2. The Kick MCP server auto-registers at `/mcp/kick` when both packages are installed.
+Ensure your token has wildcard (`*`) scope for MCP access (see [Token Scopes](#token-scopes)).
 
 ### Available MCP Tools
 
@@ -246,9 +241,7 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 }
 ```
 
-The MCP server uses the same token-based authentication as the HTTP API.
-
-> **Note:** MCP authentication validates that the token is valid, but currently grants access to all MCP tools regardless of the token's scopes. For granular access control, use separate tokens for MCP clients and consider using a dedicated token with `['*']` scope for trusted AI assistants.
+The MCP server uses the same token-based authentication as the HTTP API, but **requires a token with wildcard (`*`) scope** since it provides access to all tools.
 
 ### Example Conversation
 
