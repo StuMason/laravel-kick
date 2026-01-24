@@ -103,4 +103,12 @@ class StatsTool extends Tool
 
         return sprintf('%dm', $minutes);
     }
+
+    public function outputSchema(JsonSchema $schema): array
+    {
+        return [
+            'stats' => $schema->object()->description('System statistics including cpu, memory, disk, and uptime')->required(),
+            'timestamp' => $schema->string()->description('ISO 8601 timestamp')->required(),
+        ];
+    }
 }

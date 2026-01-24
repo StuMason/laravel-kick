@@ -53,7 +53,11 @@ describe('queue overview endpoint', function () {
 });
 
 describe('failed jobs endpoint', function () {
-    it('returns failed jobs list', function () {
+    it('returns failed jobs list when available', function () {
+        $mockInspector = Mockery::mock(\StuMason\Kick\Services\QueueInspector::class);
+        $mockInspector->shouldReceive('getFailedJobs')->with(50)->andReturn([]);
+        $this->app->instance(\StuMason\Kick\Services\QueueInspector::class, $mockInspector);
+
         $this->getJson('/kick/queue/failed', [
             'Authorization' => 'Bearer test-token-full',
         ])
@@ -64,7 +68,27 @@ describe('failed jobs endpoint', function () {
             ]);
     });
 
+    it('returns 503 when failed jobs unavailable', function () {
+        $mockInspector = Mockery::mock(\StuMason\Kick\Services\QueueInspector::class);
+        $mockInspector->shouldReceive('getFailedJobs')->andReturn(null);
+        $this->app->instance(\StuMason\Kick\Services\QueueInspector::class, $mockInspector);
+
+        $this->getJson('/kick/queue/failed', [
+            'Authorization' => 'Bearer test-token-full',
+        ])
+            ->assertStatus(503)
+            ->assertJsonStructure([
+                'failed_jobs',
+                'count',
+                'error',
+            ]);
+    });
+
     it('respects limit parameter', function () {
+        $mockInspector = Mockery::mock(\StuMason\Kick\Services\QueueInspector::class);
+        $mockInspector->shouldReceive('getFailedJobs')->with(5)->andReturn([]);
+        $this->app->instance(\StuMason\Kick\Services\QueueInspector::class, $mockInspector);
+
         $this->getJson('/kick/queue/failed?limit=5', [
             'Authorization' => 'Bearer test-token-full',
         ])
@@ -72,6 +96,10 @@ describe('failed jobs endpoint', function () {
     });
 
     it('caps limit at 100', function () {
+        $mockInspector = Mockery::mock(\StuMason\Kick\Services\QueueInspector::class);
+        $mockInspector->shouldReceive('getFailedJobs')->with(100)->andReturn([]);
+        $this->app->instance(\StuMason\Kick\Services\QueueInspector::class, $mockInspector);
+
         $response = $this->getJson('/kick/queue/failed?limit=200', [
             'Authorization' => 'Bearer test-token-full',
         ]);
@@ -83,6 +111,13 @@ describe('failed jobs endpoint', function () {
 
 describe('retry endpoints', function () {
     it('retry endpoint returns result', function () {
+        $mockInspector = Mockery::mock(\StuMason\Kick\Services\QueueInspector::class);
+        $mockInspector->shouldReceive('retryJob')->with('nonexistent-id')->andReturn([
+            'success' => false,
+            'message' => 'Job not found.',
+        ]);
+        $this->app->instance(\StuMason\Kick\Services\QueueInspector::class, $mockInspector);
+
         $this->postJson('/kick/queue/retry/nonexistent-id', [], [
             'Authorization' => 'Bearer test-token-full',
         ])
@@ -94,6 +129,14 @@ describe('retry endpoints', function () {
     });
 
     it('retry-all endpoint returns result', function () {
+        $mockInspector = Mockery::mock(\StuMason\Kick\Services\QueueInspector::class);
+        $mockInspector->shouldReceive('retryAllJobs')->andReturn([
+            'success' => true,
+            'message' => 'No failed jobs to retry.',
+            'count' => 0,
+        ]);
+        $this->app->instance(\StuMason\Kick\Services\QueueInspector::class, $mockInspector);
+
         $this->postJson('/kick/queue/retry-all', [], [
             'Authorization' => 'Bearer test-token-full',
         ])

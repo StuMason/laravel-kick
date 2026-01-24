@@ -9,7 +9,8 @@ use StuMason\Kick\Mcp\KickServer;
 |--------------------------------------------------------------------------
 |
 | These routes expose the Kick MCP server for AI client integration.
-| The server is registered at /mcp/kick by default.
+| The server is registered at /mcp/{prefix} where prefix defaults to 'kick'.
+| Configure the prefix via config('kick.prefix') or KICK_PREFIX env var.
 |
 */
 

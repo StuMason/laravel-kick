@@ -16,7 +16,7 @@ class ArtisanRunTool extends Tool
 {
     protected string $name = 'kick_artisan_run';
 
-    protected string $description = 'Execute a whitelisted artisan command. Use kick_artisan_list to see available commands. Commands like cache:clear, config:cache, queue:restart are typically allowed.';
+    protected string $description = 'Execute a whitelisted artisan command. Use kick_artisan_list to see available commands. The whitelist is configured in config/kick.php.';
 
     public function __construct(
         protected ArtisanRunner $artisanRunner,

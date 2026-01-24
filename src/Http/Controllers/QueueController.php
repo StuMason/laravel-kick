@@ -32,6 +32,14 @@ class QueueController
 
         $jobs = $this->queueInspector->getFailedJobs($limit);
 
+        if ($jobs === null) {
+            return response()->json([
+                'failed_jobs' => [],
+                'count' => 0,
+                'error' => 'Unable to retrieve failed jobs',
+            ], 503);
+        }
+
         return response()->json([
             'failed_jobs' => $jobs,
             'count' => count($jobs),

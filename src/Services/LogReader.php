@@ -141,13 +141,18 @@ class LogReader
      * Read all lines from a file.
      *
      * @return array<int, string>
+     *
+     * @throws InvalidArgumentException If the file cannot be read
      */
     protected function readLines(string $path): array
     {
-        $content = file_get_contents($path);
+        $content = @file_get_contents($path);
 
         if ($content === false) {
-            return [];
+            $error = error_get_last();
+            throw new InvalidArgumentException(
+                sprintf('Unable to read log file: %s', $error['message'] ?? 'Unknown error')
+            );
         }
 
         return explode("\n", $content);

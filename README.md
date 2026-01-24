@@ -248,6 +248,8 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 
 The MCP server uses the same token-based authentication as the HTTP API.
 
+> **Note:** MCP authentication validates that the token is valid, but currently grants access to all MCP tools regardless of the token's scopes. For granular access control, use separate tokens for MCP clients and consider using a dedicated token with `['*']` scope for trusted AI assistants.
+
 ### Example Conversation
 
 > **You:** Check the health of my Laravel app

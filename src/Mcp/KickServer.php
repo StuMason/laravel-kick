@@ -2,6 +2,7 @@
 
 namespace StuMason\Kick\Mcp;
 
+use Composer\InstalledVersions;
 use Laravel\Mcp\Server;
 use StuMason\Kick\Mcp\Tools\ArtisanListTool;
 use StuMason\Kick\Mcp\Tools\ArtisanRunTool;
@@ -16,7 +17,12 @@ class KickServer extends Server
 {
     protected string $name = 'Laravel Kick';
 
-    protected string $version = '0.3.0';
+    protected string $version = '';
+
+    public function __construct()
+    {
+        $this->version = InstalledVersions::getPrettyVersion('stumason/laravel-kick') ?? 'dev';
+    }
 
     protected string $instructions = <<<'INSTRUCTIONS'
 Laravel Kick provides secure introspection and control for Laravel applications.

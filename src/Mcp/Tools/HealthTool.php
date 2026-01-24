@@ -17,7 +17,7 @@ class HealthTool extends Tool
 {
     protected string $name = 'kick_health';
 
-    protected string $description = 'Check Laravel application health including database, cache, storage, and Redis connectivity. Returns status and latency for each service.';
+    protected string $description = 'Check Laravel application health including database, cache, and storage. Redis is checked when used for session or queue (but not when cache already uses Redis). Returns status and latency for each service.';
 
     public function __construct(
         protected HealthChecker $healthChecker,

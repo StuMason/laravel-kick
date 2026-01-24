@@ -43,12 +43,12 @@ describe('getFailedJobCount', function () {
         expect($result)->toBe(0);
     });
 
-    it('returns zero on exception', function () {
+    it('returns null on exception', function () {
         $this->mockFailedProvider->shouldReceive('all')->andThrow(new Exception('Database error'));
 
         $result = $this->queueInspector->getFailedJobCount();
 
-        expect($result)->toBe(0);
+        expect($result)->toBeNull();
     });
 });
 

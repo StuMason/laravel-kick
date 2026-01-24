@@ -37,9 +37,19 @@ class QueueStatusTool extends Tool
 
         $summary = sprintf("Queue Connection: %s\n\n", $overview['connection']);
 
+        // Show any errors first
+        if (! empty($overview['errors'])) {
+            $summary .= "⚠️ Warnings:\n";
+            foreach ($overview['errors'] as $error) {
+                $summary .= "- {$error}\n";
+            }
+            $summary .= "\n";
+        }
+
         $summary .= "Queue Sizes:\n";
         foreach ($overview['queues'] as $name => $info) {
-            $summary .= sprintf("- %s: %d jobs\n", $name, $info['size']);
+            $errorIndicator = isset($info['error']) ? ' (error)' : '';
+            $summary .= sprintf("- %s: %d jobs%s\n", $name, $info['size'], $errorIndicator);
         }
 
         $summary .= sprintf("\nFailed Jobs: %d\n", $overview['failed_count']);
@@ -49,17 +59,22 @@ class QueueStatusTool extends Tool
         ];
 
         if ($includeFailed && $overview['failed_count'] > 0) {
-            $failed = ['failed_jobs' => $this->queueInspector->getFailedJobs($failedLimit)];
-            $result['failed_jobs'] = $failed;
+            $failedJobs = $this->queueInspector->getFailedJobs($failedLimit);
 
-            $summary .= "\nRecent Failed Jobs:\n";
-            foreach (array_slice($failed['failed_jobs'], 0, 5) as $job) {
-                $summary .= sprintf(
-                    "- [%s] on %s: %s\n",
-                    $job['id'],
-                    $job['queue'],
-                    mb_substr($job['exception'], 0, 100)
-                );
+            if ($failedJobs === null) {
+                $summary .= "\n⚠️ Unable to retrieve failed jobs list.\n";
+            } elseif (count($failedJobs) > 0) {
+                $result['failed_jobs'] = $failedJobs;
+
+                $summary .= "\nRecent Failed Jobs:\n";
+                foreach (array_slice($failedJobs, 0, 5) as $job) {
+                    $summary .= sprintf(
+                        "- [%s] on %s: %s\n",
+                        $job['id'],
+                        $job['queue'],
+                        mb_substr($job['exception'], 0, 100)
+                    );
+                }
             }
         }
 

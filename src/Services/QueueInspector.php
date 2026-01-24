@@ -6,6 +6,7 @@ use Exception;
 use Illuminate\Contracts\Queue\Queue;
 use Illuminate\Queue\Failed\FailedJobProviderInterface;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue as QueueFacade;
 
 class QueueInspector
@@ -19,62 +20,85 @@ class QueueInspector
     /**
      * Get an overview of all queues.
      *
-     * @return array{connection: string, queues: array<string, array{size: int}>, failed_count: int}
+     * @return array{connection: string, queues: array<string, array{size: int|null, error?: string}>, failed_count: int|null, errors?: array<string>}
      */
     public function getOverview(): array
     {
         $connection = config('queue.default');
         $queues = $this->getConfiguredQueues();
+        $errors = [];
 
         $queueStats = [];
         foreach ($queues as $queue) {
-            $queueStats[$queue] = [
-                'size' => $this->getQueueSize($queue),
-            ];
+            $size = $this->getQueueSize($queue);
+            $queueStats[$queue] = ['size' => $size ?? 0];
+            if ($size === null) {
+                $queueStats[$queue]['error'] = 'Unable to read queue size';
+                $errors[] = "Queue '{$queue}' is unreachable";
+            }
         }
 
-        return [
+        $failedCount = $this->getFailedJobCount();
+        if ($failedCount === null) {
+            $errors[] = 'Unable to read failed jobs count';
+        }
+
+        $result = [
             'connection' => $connection,
             'queues' => $queueStats,
-            'failed_count' => $this->getFailedJobCount(),
+            'failed_count' => $failedCount ?? 0,
         ];
+
+        if (! empty($errors)) {
+            $result['errors'] = $errors;
+        }
+
+        return $result;
     }
 
     /**
      * Get the size of a specific queue.
+     *
+     * @return int|null Returns null on connection failure
      */
-    public function getQueueSize(string $queue): int
+    public function getQueueSize(string $queue): ?int
     {
         try {
             /** @var Queue $queueConnection */
             $queueConnection = QueueFacade::connection();
 
             return $queueConnection->size($queue);
-        } catch (Exception) {
-            return 0;
+        } catch (Exception $e) {
+            Log::warning('Kick: Unable to read queue size', ['queue' => $queue, 'error' => $e->getMessage()]);
+
+            return null;
         }
     }
 
     /**
      * Get the count of failed jobs.
+     *
+     * @return int|null Returns null on database/provider failure
      */
-    public function getFailedJobCount(): int
+    public function getFailedJobCount(): ?int
     {
         try {
             $failed = $this->failedJobProvider->all();
 
             return count($failed);
-        } catch (Exception) {
-            return 0;
+        } catch (Exception $e) {
+            Log::warning('Kick: Unable to read failed job count', ['error' => $e->getMessage()]);
+
+            return null;
         }
     }
 
     /**
      * Get list of failed jobs.
      *
-     * @return array<int, array{id: mixed, connection: string, queue: string, failed_at: string, exception: string}>
+     * @return array<int, array{id: mixed, connection: string, queue: string, failed_at: string, exception: string}>|null Returns null on database/provider failure
      */
-    public function getFailedJobs(int $limit = 50): array
+    public function getFailedJobs(int $limit = 50): ?array
     {
         try {
             $failed = $this->failedJobProvider->all();
@@ -90,8 +114,10 @@ class QueueInspector
                 ])
                 ->values()
                 ->all();
-        } catch (Exception) {
-            return [];
+        } catch (Exception $e) {
+            Log::warning('Kick: Unable to read failed jobs', ['error' => $e->getMessage()]);
+
+            return null;
         }
     }
 
@@ -134,10 +160,11 @@ class QueueInspector
         try {
             $count = $this->getFailedJobCount();
 
-            if ($count === 0) {
+            // Handle null (error reading) or 0 (no failed jobs)
+            if ($count === null || $count === 0) {
                 return [
                     'success' => true,
-                    'message' => 'No failed jobs to retry.',
+                    'message' => $count === null ? 'Unable to read failed jobs count.' : 'No failed jobs to retry.',
                     'count' => 0,
                 ];
             }

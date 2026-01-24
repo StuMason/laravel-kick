@@ -18,7 +18,7 @@ class LogsReadTool extends Tool
 {
     protected string $name = 'kick_logs_read';
 
-    protected string $description = 'Read entries from a Laravel log file. Supports filtering by log level (ERROR, WARNING, INFO, DEBUG) and searching within messages.';
+    protected string $description = 'Read entries from a Laravel log file. Supports filtering by log level (DEBUG, INFO, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY) and searching within messages.';
 
     public function __construct(
         protected LogReader $logReader,

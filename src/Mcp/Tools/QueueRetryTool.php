@@ -37,6 +37,10 @@ class QueueRetryTool extends Tool
             return Response::error('You must specify either a job_id to retry or set retry_all to true.');
         }
 
+        if ($jobId && $retryAll) {
+            return Response::error('Cannot specify both job_id and retry_all. Use one or the other.');
+        }
+
         if ($retryAll) {
             $result = $this->queueInspector->retryAllJobs();
 
@@ -71,9 +75,9 @@ class QueueRetryTool extends Tool
     public function outputSchema(JsonSchema $schema): array
     {
         return [
-            'success' => $schema->boolean()->description('Whether the retry was successful'),
-            'retried' => $schema->integer()->description('Number of jobs retried (for retry_all)'),
-            'message' => $schema->string()->description('Result message'),
+            'success' => $schema->boolean()->description('Whether the retry was successful')->required(),
+            'message' => $schema->string()->description('Result message')->required(),
+            'count' => $schema->integer()->description('Number of jobs retried (only present for retry_all)'),
         ];
     }
 }
