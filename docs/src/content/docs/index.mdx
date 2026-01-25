@@ -1,0 +1,32 @@
+---
+title: Laravel Kick
+description: MCP server and REST API for Laravel application introspection
+template: splash
+hero:
+  tagline: Connect Claude Desktop to your Laravel app. Check health, read logs, inspect queues, run commands.
+  actions:
+    - text: Get Started
+      link: /laravel-kick/getting-started/introduction/
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/StuMason/laravel-kick
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid>
+	<Card title="MCP Integration" icon="puzzle">
+		Connect AI assistants like Claude directly to your Laravel application via Model Context Protocol.
+	</Card>
+	<Card title="REST API" icon="rocket">
+		HTTP endpoints for health checks, logs, queue management, and artisan commands.
+	</Card>
+	<Card title="Secure by Default" icon="approve-check">
+		Token authentication, scope-based authorization, command whitelist, PII scrubbing.
+	</Card>
+	<Card title="Container Aware" icon="setting">
+		Automatic cgroups detection for accurate stats in Docker/Kubernetes.
+	</Card>
+</CardGrid>

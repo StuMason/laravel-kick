@@ -4,116 +4,83 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Laravel package for secure remote introspection and control of Laravel applications via HTTP API. Provides authenticated endpoints for health checks, system stats, log reading, queue management, and artisan command execution.
+Laravel package providing an MCP server and REST API for application introspection. Enables AI assistants (via MCP) and HTTP clients to check health, read logs, inspect queues, and run whitelisted artisan commands.
 
-**Stack:** PHP 8.2+, Laravel 11/12, Pest for testing
+**Stack:** PHP 8.4+, Laravel 12, Pest for testing
 
-## Common Commands
+## Commands
 
 ```bash
-# Run tests
-composer test
+composer test                    # Run all tests
+composer test:coverage           # Tests with coverage
+composer lint                    # PHPStan static analysis
+./vendor/bin/pest --filter=HealthChecker  # Run single test file/pattern
+```
 
-# Run tests with coverage
-composer test:coverage
+**Documentation (Astro Starlight):**
 
-# Static analysis
-composer lint
+```bash
+cd docs && npm install && npm run dev   # Local dev server on :4321
+cd docs && npm run build                # Build for production
 ```
 
 ## Architecture
 
-### Core Components
+### Dual Interface Pattern
 
-- `src/KickServiceProvider.php` - Main service provider, registers routes and middleware
-- `src/Kick.php` - Facade-accessible class with static helpers
-- `src/Http/Middleware/Authenticate.php` - Token and scope validation
+The package exposes the same functionality through two interfaces:
 
-### Services
+- **MCP Server** (`/mcp/kick`) - For AI assistants via Model Context Protocol
+- **REST API** (`/kick/*`) - For HTTP clients
 
-| Service | Purpose |
-|---------|---------|
-| `Services/HealthChecker.php` | Database, cache, storage, redis connectivity checks |
-| `Services/StatsCollector.php` | CPU, memory, disk, uptime stats (cgroups aware) |
-| `Services/LogReader.php` | Read and filter Laravel log files |
-| `Services/QueueInspector.php` | Queue job counts, failed jobs, retry functionality |
-| `Services/ArtisanRunner.php` | Whitelisted artisan command execution |
+Both interfaces use the same underlying Services and share authentication.
 
-### Controllers
+### Core Structure
 
-| Controller | Endpoints |
-|------------|-----------|
-| `HealthController.php` | `GET /kick/health` |
-| `StatsController.php` | `GET /kick/stats` |
-| `LogController.php` | `GET /kick/logs`, `GET /kick/logs/{file}` |
-| `QueueController.php` | `GET /kick/queue`, `GET /kick/queue/failed`, `POST /kick/queue/retry/*` |
-| `ArtisanController.php` | `GET /kick/artisan`, `POST /kick/artisan` |
+```text
+src/
+  KickServiceProvider.php       # Registers routes, middleware, MCP server
+  Http/
+    Middleware/Authenticate.php # Token + scope validation
+    Controllers/                # Thin controllers, delegate to Services
+  Services/                     # Business logic
+    HealthChecker.php          # DB, cache, storage, redis checks
+    StatsCollector.php         # CPU, memory, disk (cgroups aware)
+    LogReader.php              # Log file reading with filters
+    QueueInspector.php         # Queue stats, failed jobs
+    ArtisanRunner.php          # Whitelisted command execution
+    PiiScrubber.php            # Redacts sensitive data from output
+  Mcp/
+    KickServer.php             # MCP server registration
+    Tools/                     # MCP tool implementations (wrap Services)
+```
 
-### Configuration
+### MCP Tools
 
-- `config/kick.php` - Main config file with tokens, scopes, allowed commands, rate limits
+Each tool in `src/Mcp/Tools/` wraps a Service. Tools define input schemas and format responses for AI consumption. The `KickServer` registers all tools with the Laravel MCP package.
 
-### Testing
-
-Uses Orchestra Testbench for Laravel package testing with Pest.
-
-- `tests/Unit/` - Service unit tests (HealthChecker, StatsCollector, LogReader, QueueInspector, ArtisanRunner)
-- `tests/Feature/` - Controller feature tests with auth/scope testing
-
-All HTTP calls are mocked. Tests cover:
-- Authentication (401 without token, 403 with wrong scope)
-- Authorization (scope-based access control)
-- Functionality (correct responses, error handling)
-
-## Key Patterns
-
-1. **Service Pattern** - Business logic in Services, controllers are thin
-2. **Scope-based Auth** - Middleware validates token and required scope
-3. **Command Whitelist** - Only explicitly allowed artisan commands can run
-4. **Path Traversal Protection** - LogReader validates file paths
-5. **Container Detection** - StatsCollector auto-detects cgroups v1/v2
-
-## Authentication Flow
+### Authentication Flow
 
 1. Request includes `Authorization: Bearer <token>` header
-2. `Authenticate` middleware extracts token
-3. Token looked up in `config('kick.tokens')`
-4. Token's scopes checked against required scope for endpoint
-5. Wildcard scope `*` grants access to everything
+2. Middleware looks up token in `config('kick.tokens')`
+3. Token's scopes checked against endpoint's required scope
+4. Wildcard scope `*` grants full access (required for MCP)
 
-## Adding New Endpoints
+### PII Scrubber
 
-1. Create service in `src/Services/` with business logic
-2. Create controller in `src/Http/Controllers/`
-3. Add route in `routes/api.php` with appropriate scope middleware
-4. Add scope to config docblock in `config/kick.php`
-5. Write unit tests for service, feature tests for controller
+`PiiScrubber` automatically redacts sensitive data (emails, IPs, cards, tokens, etc.) from log entries and queue exceptions before returning via API/MCP. Patterns configurable in `config/kick.php`.
+
+## Testing
+
+Uses Orchestra Testbench with Pest. Tests are in `tests/Unit/` (Services, MCP tools) and `tests/Feature/` (Controllers with auth).
+
+## Adding New Functionality
+
+1. Add business logic to existing Service or create new one in `src/Services/`
+2. For REST API: Add controller method, add route with scope middleware
+3. For MCP: Create tool in `src/Mcp/Tools/`, register in `KickServer`
+4. Write unit tests for service/tool, feature tests for controller
 
 ## Git Workflow
 
-**NEVER push directly to main.** Always follow this workflow:
-
-1. Create a feature branch from main
-2. Make changes and commit
-3. Run tests (`composer test`) and lint (`composer lint`)
-4. Create a PR to main
-5. Address review feedback
-6. Merge PR
-7. Tag release if needed
-
-```bash
-# Example workflow
-git checkout -b feature/my-feature
-# ... make changes ...
-composer test && composer lint
-git add -A && git commit -m "feat: description"
-git push -u origin feature/my-feature
-gh pr create --title "feat: description" --body "..."
-```
-
-## Future Tasks
-
-- [ ] MCP (Model Context Protocol) server integration
-- [ ] Rate limiting middleware
-- [ ] Metrics export (Prometheus format)
-- [ ] WebSocket support for real-time logs
+Never push directly to main. Create feature branch, run `composer test && composer lint`, create PR.

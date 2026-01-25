@@ -12,3 +12,6 @@ composer.lock
 *.swo
 .env
 .claude/
+docs/dist/
+docs/.astro/
+docs/node_modules/
