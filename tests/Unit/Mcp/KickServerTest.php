@@ -1,22 +1,27 @@
 <?php
 
+use Laravel\Mcp\Server\Contracts\Transport;
 use StuMason\Kick\Mcp\KickServer;
 
+beforeEach(function () {
+    $this->transport = Mockery::mock(Transport::class);
+});
+
 it('can be instantiated', function () {
-    $server = new KickServer;
+    $server = new KickServer($this->transport);
 
     expect($server)->toBeInstanceOf(KickServer::class);
 });
 
 it('extends Laravel MCP Server', function () {
-    $server = new KickServer;
+    $server = new KickServer($this->transport);
 
     expect($server)->toBeInstanceOf(\Laravel\Mcp\Server::class);
 });
 
 it('configures expected tool classes', function () {
     // Use reflection to access protected $tools property
-    $server = new KickServer;
+    $server = new KickServer($this->transport);
     $reflection = new ReflectionClass($server);
     $toolsProperty = $reflection->getProperty('tools');
     $toolsProperty->setAccessible(true);
@@ -33,7 +38,7 @@ it('configures expected tool classes', function () {
 });
 
 it('has server name configured', function () {
-    $server = new KickServer;
+    $server = new KickServer($this->transport);
     $reflection = new ReflectionClass($server);
     $nameProperty = $reflection->getProperty('name');
     $nameProperty->setAccessible(true);
@@ -42,7 +47,7 @@ it('has server name configured', function () {
 });
 
 it('has instructions configured', function () {
-    $server = new KickServer;
+    $server = new KickServer($this->transport);
     $reflection = new ReflectionClass($server);
     $instructionsProperty = $reflection->getProperty('instructions');
     $instructionsProperty->setAccessible(true);

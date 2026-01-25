@@ -4,6 +4,7 @@ namespace StuMason\Kick\Mcp;
 
 use Composer\InstalledVersions;
 use Laravel\Mcp\Server;
+use Laravel\Mcp\Server\Contracts\Transport;
 use StuMason\Kick\Mcp\Tools\ArtisanListTool;
 use StuMason\Kick\Mcp\Tools\ArtisanRunTool;
 use StuMason\Kick\Mcp\Tools\HealthTool;
@@ -19,8 +20,9 @@ class KickServer extends Server
 
     protected string $version = '';
 
-    public function __construct()
+    public function __construct(Transport $transport)
     {
+        parent::__construct($transport);
         $this->version = InstalledVersions::getPrettyVersion('stumason/laravel-kick') ?? 'dev';
     }
 
