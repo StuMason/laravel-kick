@@ -14,8 +14,11 @@ class LogReader
     public function __construct(
         protected string $basePath,
         protected array $allowedExtensions = ['log'],
-        protected int $maxLines = 500
-    ) {}
+        protected int $maxLines = 500,
+        protected ?PiiScrubber $scrubber = null
+    ) {
+        $this->scrubber = $scrubber ?? new PiiScrubber;
+    }
 
     /**
      * List all available log files.
@@ -84,7 +87,7 @@ class LogReader
             ->take($lines)
             ->map(fn ($content, $lineNum) => [
                 'line' => $lineNum + 1,
-                'content' => $content,
+                'content' => $this->scrubber->scrub($content),
             ])
             ->values()
             ->all();

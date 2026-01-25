@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- PII Scrubber - automatically redacts sensitive data from log entries and queue exceptions
+  - Scrubs emails, IPs, phone numbers, credit cards, SSNs, API keys, JWTs, passwords
+  - Configurable via `kick.scrubber` config with custom patterns support
+  - Enabled by default, can be disabled via `KICK_SCRUBBER_ENABLED=false`
+
 ## [0.3.0] - 2026-01-25
 
 ### Added

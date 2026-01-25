@@ -11,10 +11,14 @@ use Illuminate\Support\Facades\Queue as QueueFacade;
 
 class QueueInspector
 {
+    protected PiiScrubber $scrubber;
+
     public function __construct(
-        protected ?FailedJobProviderInterface $failedJobProvider = null
+        protected ?FailedJobProviderInterface $failedJobProvider = null,
+        ?PiiScrubber $scrubber = null
     ) {
         $this->failedJobProvider = $failedJobProvider ?? app('queue.failer');
+        $this->scrubber = $scrubber ?? new PiiScrubber;
     }
 
     /**
@@ -238,14 +242,17 @@ class QueueInspector
     }
 
     /**
-     * Truncate exception message for readability.
+     * Truncate and scrub exception message for readability and security.
      */
     protected function truncateException(string $exception, int $maxLength = 500): string
     {
-        if (strlen($exception) <= $maxLength) {
-            return $exception;
+        // Scrub PII before truncating
+        $scrubbed = $this->scrubber->scrub($exception);
+
+        if (strlen($scrubbed) <= $maxLength) {
+            return $scrubbed;
         }
 
-        return substr($exception, 0, $maxLength).'...';
+        return substr($scrubbed, 0, $maxLength).'...';
     }
 }

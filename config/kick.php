@@ -119,4 +119,38 @@ return [
     'mcp' => [
         'enabled' => env('KICK_MCP_ENABLED', true),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | PII Scrubber
+    |--------------------------------------------------------------------------
+    |
+    | The PII scrubber automatically redacts sensitive information from log
+    | entries and queue exception messages before they are returned via API
+    | or MCP. This helps prevent accidental exposure of personal data.
+    |
+    | Patterns detected by default:
+    | - Email addresses
+    | - IP addresses (IPv4 and IPv6)
+    | - Phone numbers
+    | - Credit card numbers
+    | - Social Security Numbers (US)
+    | - API keys and tokens
+    | - Bearer tokens
+    | - JWT tokens
+    | - Password fields in key=value format
+    |
+    */
+
+    'scrubber' => [
+        'enabled' => env('KICK_SCRUBBER_ENABLED', true),
+
+        // Default replacement text for patterns without specific replacements
+        'replacement' => '[REDACTED]',
+
+        // Add custom regex patterns here (merged with defaults)
+        // 'patterns' => [
+        //     'custom_id' => '/CUST-[0-9]{8}/',
+        // ],
+    ],
 ];

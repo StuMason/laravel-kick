@@ -193,12 +193,52 @@ Kick is designed with security as a priority:
 - **Scope-based authorization** - Fine-grained control over what each token can access
 - **Command whitelist** - Only explicitly allowed artisan commands can be executed
 - **Path traversal protection** - Log reader prevents directory escape attacks
+- **PII scrubbing** - Automatically redacts sensitive data from logs and exceptions
 - **Disabled by default** - Must be explicitly enabled via `KICK_ENABLED=true`
+
+### PII Scrubber
+
+Kick automatically redacts sensitive information from log entries and queue exception messages before returning them via API or MCP. This prevents accidental exposure of personal data.
+
+**Patterns detected by default:**
+- Email addresses → `[EMAIL]`
+- IP addresses (IPv4/IPv6) → `[IP]`
+- Phone numbers → `[PHONE]`
+- Credit card numbers → `[CARD]`
+- Social Security Numbers → `[SSN]`
+- API keys and tokens → `[API_KEY]`
+- Bearer tokens → `Bearer [TOKEN]`
+- JWT tokens → `[JWT]`
+- Password fields in logs → `[REDACTED]`
+
+**Configuration:**
+
+```php
+// config/kick.php
+'scrubber' => [
+    'enabled' => env('KICK_SCRUBBER_ENABLED', true),
+    'replacement' => '[REDACTED]',  // Default replacement text
+
+    // Add custom patterns (merged with defaults)
+    'patterns' => [
+        'custom_id' => '/CUST-[0-9]{8}/',
+        'internal_code' => '/INT-[A-Z]{3}-[0-9]+/',
+    ],
+],
+```
+
+To disable scrubbing (not recommended):
+
+```env
+KICK_SCRUBBER_ENABLED=false
+```
 
 **Recommendations:**
 - Use strong, randomly generated tokens (32+ characters)
 - Use separate tokens for different purposes/consumers
 - Only whitelist artisan commands you actually need
+- Keep the PII scrubber enabled in production
+- Add custom patterns for any internal identifiers
 - Consider IP restrictions at the infrastructure level
 
 ## MCP Integration
