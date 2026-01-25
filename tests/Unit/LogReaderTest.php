@@ -191,3 +191,24 @@ it('paginates filtered results correctly', function () {
     expect($secondPage['entries'])->toHaveCount(3);
     expect($secondPage['has_more'])->toBeTrue();
 });
+
+it('has a 50MB file size limit constant', function () {
+    $reflection = new ReflectionClass(LogReader::class);
+    $constant = $reflection->getConstant('MAX_UNFILTERED_SIZE');
+
+    // 50MB in bytes
+    expect($constant)->toBe(50 * 1024 * 1024);
+});
+
+it('allows large files when using filters', function () {
+    // This test verifies that the file size check is bypassed when filters are applied
+    // The actual 50MB limit can't be easily tested without creating huge files
+    $content = "[2024-01-01 12:00:00] production.ERROR: Test error";
+    file_put_contents($this->tempDir.'/laravel.log', $content);
+
+    $reader = new LogReader($this->tempDir);
+
+    // With a filter, should work regardless of file size logic
+    $result = $reader->read('laravel.log', 100, 0, null, 'ERROR');
+    expect($result['entries'])->toHaveCount(1);
+});

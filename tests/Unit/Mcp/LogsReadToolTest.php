@@ -56,6 +56,21 @@ it('returns error for invalid file', function () {
     expect($response)->toBeInstanceOf(Response::class);
 });
 
+it('returns error for large files without filters', function () {
+    $mockReader = Mockery::mock(LogReader::class);
+    $mockReader->shouldReceive('read')->once()->andThrow(
+        new RuntimeException('Log file too large (52.3 MB). Use search or level filter to read large files.')
+    );
+
+    $tool = new LogsReadTool($mockReader);
+    $request = Mockery::mock(Request::class);
+    $request->shouldReceive('validate')->andReturn(['file' => 'huge.log']);
+
+    $response = $tool->handle($request);
+
+    expect($response)->toBeInstanceOf(Response::class);
+});
+
 it('returns message when no entries found', function () {
     $mockReader = Mockery::mock(LogReader::class);
     $mockReader->shouldReceive('read')->once()->andReturn([

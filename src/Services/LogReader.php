@@ -75,6 +75,12 @@ class LogReader
         $hasFilters = $search !== null || $level !== null;
         $fileSize = filesize($path);
 
+        if ($fileSize === false) {
+            throw new RuntimeException(
+                sprintf('Unable to determine file size for: %s', $filename)
+            );
+        }
+
         // Check file size for unfiltered reads
         if (! $hasFilters && $fileSize > self::MAX_UNFILTERED_SIZE) {
             $sizeMb = round($fileSize / (1024 * 1024), 1);
@@ -238,9 +244,22 @@ class LogReader
 
         fclose($pipes[0]);
         $output = stream_get_contents($pipes[1]);
+        $stderr = stream_get_contents($pipes[2]);
         fclose($pipes[1]);
         fclose($pipes[2]);
-        proc_close($process);
+        $exitCode = proc_close($process);
+
+        // Check for stream read failures
+        if ($output === false) {
+            return $this->readWithPhpFilter($path, $lines, $offset, $search, $level);
+        }
+
+        // Exit code 0 = matches found, 1 = no matches (both OK), 2+ = error
+        if ($exitCode >= 2) {
+            // Grep encountered an error, fall back to PHP filtering
+            // stderr contains: $stderr (available for debugging if needed)
+            return $this->readWithPhpFilter($path, $lines, $offset, $search, $level);
+        }
 
         // Parse grep output (format: line_number:content)
         $allMatches = [];
@@ -316,7 +335,6 @@ class LogReader
         }
 
         $matches = [];
-        $lineNum = 0;
 
         while (! $file->eof()) {
             $content = rtrim((string) $file->current(), "\r\n");
