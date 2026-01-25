@@ -160,7 +160,7 @@ it('combines search and level filters', function () {
     $content = "[2024-01-01 12:00:00] production.INFO: User logged in\n".
                "[2024-01-01 12:00:01] production.ERROR: User authentication failed\n".
                "[2024-01-01 12:00:02] production.ERROR: Database connection failed\n".
-               "[2024-01-01 12:00:03] production.INFO: User logged out";
+               '[2024-01-01 12:00:03] production.INFO: User logged out';
     file_put_contents($this->tempDir.'/laravel.log', $content);
 
     $reader = new LogReader($this->tempDir);
@@ -203,7 +203,7 @@ it('has a 50MB file size limit constant', function () {
 it('allows large files when using filters', function () {
     // This test verifies that the file size check is bypassed when filters are applied
     // The actual 50MB limit can't be easily tested without creating huge files
-    $content = "[2024-01-01 12:00:00] production.ERROR: Test error";
+    $content = '[2024-01-01 12:00:00] production.ERROR: Test error';
     file_put_contents($this->tempDir.'/laravel.log', $content);
 
     $reader = new LogReader($this->tempDir);

@@ -5,12 +5,12 @@ namespace StuMason\Kick\Mcp\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use InvalidArgumentException;
 use Laravel\Mcp\Request;
-use RuntimeException;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsIdempotent;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
+use RuntimeException;
 use StuMason\Kick\Services\LogReader;
 
 #[IsReadOnly]
