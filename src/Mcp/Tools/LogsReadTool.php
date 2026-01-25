@@ -5,6 +5,7 @@ namespace StuMason\Kick\Mcp\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use InvalidArgumentException;
 use Laravel\Mcp\Request;
+use RuntimeException;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Tool;
@@ -43,7 +44,7 @@ class LogsReadTool extends Tool
 
         try {
             $result = $this->logReader->read($file, $limit, 0, $search, $level);
-        } catch (InvalidArgumentException $e) {
+        } catch (InvalidArgumentException|RuntimeException $e) {
             return Response::error($e->getMessage());
         }
 

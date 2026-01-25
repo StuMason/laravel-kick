@@ -132,3 +132,62 @@ it('can tail recent entries', function () {
 
     expect($entries)->toHaveCount(5);
 });
+
+it('handles empty log files', function () {
+    file_put_contents($this->tempDir.'/empty.log', '');
+
+    $reader = new LogReader($this->tempDir);
+    $result = $reader->read('empty.log');
+
+    expect($result['entries'])->toBeEmpty();
+    expect($result['total_lines'])->toBe(0);
+    expect($result['has_more'])->toBeFalse();
+});
+
+it('returns entries in reverse order (most recent first)', function () {
+    $content = "Line 1\nLine 2\nLine 3";
+    file_put_contents($this->tempDir.'/laravel.log', $content);
+
+    $reader = new LogReader($this->tempDir);
+    $result = $reader->read('laravel.log');
+
+    expect($result['entries'][0]['content'])->toBe('Line 3');
+    expect($result['entries'][1]['content'])->toBe('Line 2');
+    expect($result['entries'][2]['content'])->toBe('Line 1');
+});
+
+it('combines search and level filters', function () {
+    $content = "[2024-01-01 12:00:00] production.INFO: User logged in\n".
+               "[2024-01-01 12:00:01] production.ERROR: User authentication failed\n".
+               "[2024-01-01 12:00:02] production.ERROR: Database connection failed\n".
+               "[2024-01-01 12:00:03] production.INFO: User logged out";
+    file_put_contents($this->tempDir.'/laravel.log', $content);
+
+    $reader = new LogReader($this->tempDir);
+    $result = $reader->read('laravel.log', 100, 0, 'User', 'ERROR');
+
+    expect($result['entries'])->toHaveCount(1);
+    expect($result['entries'][0]['content'])->toContain('authentication failed');
+});
+
+it('paginates filtered results correctly', function () {
+    $lines = [];
+    for ($i = 1; $i <= 20; $i++) {
+        $level = $i % 2 === 0 ? 'ERROR' : 'INFO';
+        $lines[] = "[2024-01-01 12:00:{$i}0] production.{$level}: Line {$i}";
+    }
+    file_put_contents($this->tempDir.'/laravel.log', implode("\n", $lines));
+
+    $reader = new LogReader($this->tempDir);
+
+    // Get first page of ERROR entries (lines 2, 4, 6, 8, 10, 12, 14, 16, 18, 20 - 10 total)
+    $firstPage = $reader->read('laravel.log', 3, 0, null, 'ERROR');
+    expect($firstPage['entries'])->toHaveCount(3);
+    expect($firstPage['total_lines'])->toBe(10);
+    expect($firstPage['has_more'])->toBeTrue();
+
+    // Get second page
+    $secondPage = $reader->read('laravel.log', 3, 3, null, 'ERROR');
+    expect($secondPage['entries'])->toHaveCount(3);
+    expect($secondPage['has_more'])->toBeTrue();
+});
